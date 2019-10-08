@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>FrameliciousV2</title>
+  <style type="text/css" media="screen">
+    #drop_zone {
+      width: 99%;
+      height: 99%;
+      position: absolute;
+      color: white;
+      border: 1px solid red;
+    }
+
+    div,
+    p,
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body style="overflow: hidden;-webkit-app-region: drag;">
+  <div>
+    <div id="drop_zone" ondragenter="cancel(event)" ondragover="cancel(event)" ondragleave="cancel(event)"
+      ondrop="drop(event)">
+      <p style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);">Drop frames...</p>
+    </div>
+    <div style="
+        pointer-events: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);">
+      <canvas id="myCan"> </canvas>
+    </div>
+  </div>
+  <script src="animationPlayer.js"></script>
+  <script src="index.js"></script>
+</body>
+
+</html>
