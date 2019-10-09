@@ -6,11 +6,22 @@
   <title>FrameliciousV2</title>
   <style type="text/css" media="screen">
     #drop_zone {
-      width: 99%;
-      height: 99%;
+      width: 100%;
+      height: 100%;
       position: absolute;
-      color: white;
+      color: red;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
       border: 1px solid red;
+      box-sizing: border-box;
+    }
+
+    html:hover {
+      border: none;
+      box-sizing: unset;
     }
 
     div,
@@ -20,30 +31,175 @@
       margin: 0;
       padding: 0;
     }
+
+    #menu {
+      user-select: none;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.9);
+      padding: 1%;
+      top: 90%;
+      left: 50%;
+      color: white;
+      transform: translate(-50%, -50%);
+    }
+
+    .canvas-container {
+      position: absolute;
+      top: 50.5%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #currentFrame {
+      position: absolute;
+      color: white;
+      background: black;
+    }
+
+    .droptext {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 1%;
+      color: white;
+      user-select: none;
+    }
   </style>
 </head>
 
-<body style="overflow: hidden;-webkit-app-region: drag;">
+<body style="overflow: hidden;">
+  <div id="currentFrame"></div>
   <div>
     <div id="drop_zone" ondragenter="cancel(event)" ondragover="cancel(event)" ondragleave="cancel(event)"
       ondrop="drop(event)">
-      <p style="
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);">Drop frames...</p>
+      <p class="centered droptext">Drop
+        frames...</p>
     </div>
-    <div style="
-        pointer-events: none;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);">
-      <canvas id="myCan"> </canvas>
+    <div class="canvas-container">
+      <canvas id="myCan" style="-webkit-app-region: drag;" width="0" height="0"> </canvas>
+    </div>
+  </div>
+  <div id='menu'>
+    <div>
+      <label style="white-space: nowrap;" for="baseFrameRate">FRAME RATE: </label>
+      <input style="width:20%;" type="number" id="baseFrameRate" name="baseFrameRate" value="30">
+    </div>
+    <div>
+      <label style="white-space: nowrap;" for="showframes">SHOW FRAMES: </label>
+      <input type="checkbox" id="showframes" name="showframes">
+    </div>
+    <div style="padding-top: 1%">
+      <input style="background-color: green" type="button" id="play" name="play" value="PLAY">
+      <input style="background-color: red" type="button" id="stop" name="stop" value="STOP">
+      <input style="background-color: yellow" type="button" id="pause" name="pause" value="PAUSE">
     </div>
   </div>
   <script src="animationPlayer.js"></script>
   <script src="index.js"></script>
+  <script src="draggable.js"></script>
+  <script>
+    var windowTopBar = document.createElement('div')
+    windowTopBar.classList.add('topBar')
+    windowTopBar.style.width = "100%"
+    windowTopBar.style.height = "1%"
+    windowTopBar.style.backgroundColor = 'rgba(255, 0, 0, 0.15)'
+    windowTopBar.style.position = "absolute"
+    windowTopBar.style.webkitAppRegion = "drag"
+    document.body.appendChild(windowTopBar)
+
+    const dropZone = document.getElementById('drop_zone')
+    const canvas = document.querySelector('#myCan')
+    const context = canvas.getContext('2d')
+    const frameRateInput = document.getElementById('baseFrameRate')
+    const showframes = document.getElementById('showframes')
+    const currentFrame = document.getElementById('currentFrame')
+
+    const menuContainer = document.getElementById('menu')
+    const play = document.getElementById('play')
+    const pause = document.getElementById('pause')
+    const stop = document.getElementById('stop')
+    menuContainer.style.display = 'none'
+
+    frameRateInput.addEventListener('input', (e) => {
+      window.BASE_FRAME_RATE = e.target.value
+      localStorage.setItem('base-frame-rate', e.target.value)
+    })
+
+    showframes.addEventListener('change', (e) => {
+      localStorage.setItem('showframes', e.target.checked)
+    })
+
+    // get localstorage values
+    showframes.checked = localStorage.getItem('showframes') || false
+    frameRateInput.value = localStorage.getItem('base-frame-rate') || 30
+
+    frameRateInput.addEventListener('mouseenter', (e) => {
+      menuContainer.dragLocked = true
+    })
+
+    frameRateInput.addEventListener('mouseleave', (e) => {
+      menuContainer.dragLocked = false
+    })
+
+    play.addEventListener('click', () => {
+      if (!activeAnimation) return
+      activeAnimation.play(context)
+    })
+
+    stop.addEventListener('click', () => {
+      if (!activeAnimation) return
+      activeAnimation.stop()
+    })
+
+    pause.addEventListener('click', () => {
+      if (!activeAnimation) return
+      activeAnimation.pause()
+    })
+
+
+    window.addEventListener('keyup', e => {
+      if (e.key === 'm' || e.key === 'M') {
+        if (menuContainer.style.display === 'none') {
+          menuContainer.style.display = null
+          canvas.style.webkitAppRegion = 'none'
+        } else {
+          menuContainer.style.display = 'none'
+          canvas.style.webkitAppRegion = 'drag'
+        }
+      }
+
+      if (e.key === 'Escape') {
+        if (menuContainer.style.display !== 'none') {
+          menuContainer.style.display = 'none'
+          canvas.style.webkitAppRegion = 'drag'
+        } else if (!activeAnimation) {
+          window.close()
+        } else {
+          activeAnimation.stop()
+          activeAnimation = null
+          canvas.width = canvas.height = 0
+          dropZone.style.display = null
+        }
+
+      }
+    })
+
+    const updateCurrentFrame = () => {
+      if (showframes.checked && activeAnimation) {
+        currentFrame.innerText = activeAnimation.currentFrame
+      } else {
+        currentFrame.innerText = ''
+      }
+
+      requestAnimationFrame(updateCurrentFrame)
+    }
+    updateCurrentFrame()
+  </script>
 </body>
 
 </html>
