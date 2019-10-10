@@ -6,11 +6,22 @@ function cancel(evt){
 let activeAnimation;
 function drop(ev){
 	ev.preventDefault()
-  // ev.target.style.display = 'none'
+
  	var data = Array(...ev.dataTransfer.files)
   const sortedData = data.sort((a,b) => {
-    if(a.name > b.name) return 1
-    if(a.name < b.name) return -1
+    if(!a.name.match(/([0-9])+/)){
+      return -1
+    }
+    
+    if(!b.name.match(/([0-9])+/)){
+      return 1
+    }
+
+    const numberA = parseInt(a.name.match(/([0-9])+/)[0])
+    const numberB = parseInt(b.name.match(/([0-9])+/)[0])
+
+    if(numberA > numberB) return 1
+    if(numberA < numberB) return -1
     return 0
   })
 
