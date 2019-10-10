@@ -9,17 +9,19 @@ function drop(ev){
 
  	var data = Array(...ev.dataTransfer.files)
   const sortedData = data.sort((a,b) => {
-    if(!a.name.match(/([0-9])+/)){
+    const matchesA = a.name.match(/([0-9])+/g)
+    if(!matchesA){
       return -1
     }
-    
-    if(!b.name.match(/([0-9])+/)){
+
+    const matchesB = b.name.match(/([0-9])+/g)
+    if(!matchesB){
       return 1
     }
+    const numberA = parseInt(matchesA[matchesA.length-1])
+    const numberB = parseInt(matchesB[matchesB.length-1])
 
-    const numberA = parseInt(a.name.match(/([0-9])+/)[0])
-    const numberB = parseInt(b.name.match(/([0-9])+/)[0])
-
+    console.log( a.name, numberA, numberB)
     if(numberA > numberB) return 1
     if(numberA < numberB) return -1
     return 0
